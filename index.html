@@ -1,24 +1,258 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>InfraGuard Dashboard</title>
-<style>
-body{font-family:Arial;background:#eef3f8;padding:40px}
-.card{background:white;padding:30px;border-radius:15px;max-width:750px;margin:auto;box-shadow:0 0 15px #aaa}
-h1{color:#123c69}
-.status{font-size:26px;color:green;font-weight:bold}
-.log{background:#f2f6fb;padding:12px;margin:10px 0;border-radius:8px}
-</style>
+  <title>InfraGuard Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      color: white;
+      padding: 25px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    .badge {
+      background: #22c55e;
+      padding: 10px 18px;
+      border-radius: 25px;
+      font-weight: bold;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+
+    .card h2 {
+      font-size: 16px;
+      color: #cbd5e1;
+    }
+
+    .card p {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 10px 0 0;
+    }
+
+    .section {
+      margin-top: 25px;
+      background: rgba(255,255,255,0.12);
+      padding: 25px;
+      border-radius: 18px;
+    }
+
+    .pipeline-step {
+      display: flex;
+      justify-content: space-between;
+      padding: 14px;
+      margin: 10px 0;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+    }
+
+    button {
+      background: #38bdf8;
+      border: none;
+      color: #0f172a;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 8px 8px 8px 0;
+    }
+
+    button:hover {
+      background: #7dd3fc;
+    }
+
+    .danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .success {
+      color: #22c55e;
+    }
+
+    .warning {
+      color: #facc15;
+    }
+
+    .log {
+      background: #020617;
+      color: #22c55e;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 10px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+
+    @media(max-width: 900px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media(max-width: 600px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="card">
-<h1>InfraGuard CI/CD Dashboard</h1>
-<p class="status">System Status: COMPLIANT</p>
-<p>Infrastructure created using Terraform on AWS.</p>
-<div class="log">EC2 instance created successfully.</div>
-<div class="log">Security Group configured with restricted SSH.</div>
-<div class="log">S3 dashboard bucket created.</div>
-<div class="log">Next: Jenkins will automate this deployment.</div>
-</div>
+  <div class="container">
+
+    <div class="header">
+      <div>
+        <h1>InfraGuard CI/CD Dashboard</h1>
+        <p>Jenkins + Terraform + AWS Self-Healing Infrastructure</p>
+      </div>
+      <div class="badge" id="mainStatus">COMPLIANT</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Pipeline Status</h2>
+        <p class="success" id="pipelineStatus">SUCCESS</p>
+      </div>
+
+      <div class="card">
+        <h2>Cloud Provider</h2>
+        <p>AWS</p>
+      </div>
+
+      <div class="card">
+        <h2>IaC Tool</h2>
+        <p>Terraform</p>
+      </div>
+
+      <div class="card">
+        <h2>Deploy Tool</h2>
+        <p>Jenkins</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>CI/CD Pipeline Flow</h2>
+
+      <div class="pipeline-step">
+        <span>1. GitHub Repository Checkout</span>
+        <span class="success">Completed</span>
+      </div>
+
+      <div class="pipeline-step">
+        <span>2. Terraform Initialization</span>
+        <span class="success">Completed</span>
+      </div>
+
+      <div class="pipeline-step">
+        <span>3. AWS Infrastructure Provisioning</span>
+        <span class="success">Completed</span>
+      </div>
+
+      <div class="pipeline-step">
+        <span>4. Dashboard Upload to S3</span>
+        <span class="success">Completed</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Drift Detection Simulation</h2>
+      <p>This simulates what happens when SSH is opened publicly.</p>
+
+      <button class="danger" onclick="simulateDrift()">Simulate Drift</button>
+      <button onclick="autoHeal()">Run Auto-Heal</button>
+      <button onclick="resetDashboard()">Reset</button>
+
+      <h3>Current Security Status:</h3>
+      <p id="securityStatus" class="success">SSH is restricted. Infrastructure is compliant.</p>
+
+      <div id="logs">
+        <div class="log">[INFO] Dashboard loaded successfully.</div>
+        <div class="log">[INFO] Last Jenkins deployment: SUCCESS.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function addLog(message) {
+      const logs = document.getElementById("logs");
+      const div = document.createElement("div");
+      div.className = "log";
+      div.innerText = message;
+      logs.prepend(div);
+    }
+
+    function simulateDrift() {
+      document.getElementById("mainStatus").innerText = "DRIFT DETECTED";
+      document.getElementById("mainStatus").style.background = "#ef4444";
+      document.getElementById("securityStatus").innerText = "Public SSH detected: 0.0.0.0/0 on port 22.";
+      document.getElementById("securityStatus").className = "warning";
+
+      addLog("[WARNING] Infrastructure drift detected: SSH opened publicly.");
+      addLog("[CONFIG] AWS Config marked resource as NON_COMPLIANT.");
+    }
+
+    function autoHeal() {
+      document.getElementById("mainStatus").innerText = "AUTO-HEALED";
+      document.getElementById("mainStatus").style.background = "#22c55e";
+      document.getElementById("securityStatus").innerText = "Lambda remediation removed public SSH rule.";
+      document.getElementById("securityStatus").className = "success";
+
+      addLog("[LAMBDA] Auto-remediation triggered.");
+      addLog("[FIXED] Public SSH rule removed successfully.");
+      addLog("[SNS] Alert sent to administrator.");
+    }
+
+    function resetDashboard() {
+      document.getElementById("mainStatus").innerText = "COMPLIANT";
+      document.getElementById("mainStatus").style.background = "#22c55e";
+      document.getElementById("securityStatus").innerText = "SSH is restricted. Infrastructure is compliant.";
+      document.getElementById("securityStatus").className = "success";
+
+      addLog("[RESET] Dashboard restored to compliant state.");
+    }
+  </script>
 </body>
 </html>
