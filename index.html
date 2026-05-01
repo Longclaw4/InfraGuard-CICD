@@ -62,10 +62,16 @@
     .ok { color: lightgreen; }
     .warn { color: yellow; }
 
+    #logs {
+      margin-top: 15px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
     .log {
       background: black;
       padding: 10px;
-      margin-top: 10px;
+      margin-top: 8px;
       border-radius: 10px;
       font-family: monospace;
     }
@@ -73,6 +79,7 @@
 </head>
 
 <body>
+
 <div class="container">
 
   <div class="header">
@@ -80,60 +87,65 @@
       <h1>InfraGuard Dashboard</h1>
       <p>Jenkins + Terraform + AWS</p>
     </div>
-    <div class="badge" id="status">LOADING...</div>
+    <div class="badge" id="status">COMPLIANT</div>
   </div>
 
   <div class="grid">
     <div class="card">
       <h3>Pipeline</h3>
-      <p id="pipelineStatus">-</p>
+      <p id="pipelineStatus">SUCCESS</p>
     </div>
 
     <div class="card">
       <h3>Instance ID</h3>
-      <p id="instanceId">-</p>
+      <p id="instanceId">Loading...</p>
     </div>
 
     <div class="card">
       <h3>Public IP</h3>
-      <p id="publicIp">-</p>
+      <p id="publicIp">Loading...</p>
     </div>
 
     <div class="card">
       <h3>State</h3>
-      <p id="instanceState">-</p>
+      <p id="instanceState">Running</p>
     </div>
   </div>
 
   <div class="section">
     <h2>Deployment Info</h2>
-    <p><b>Last Deploy:</b> <span id="deployTime">-</span></p>
+    <p><b>Last Deploy:</b> <span id="deployTime">Loading...</span></p>
   </div>
 
   <div class="section">
-    <h2>Drift Simulation</h2>
+    <h2>Drift Detection & Auto-Healing</h2>
 
     <button class="danger" onclick="drift()">Simulate Drift</button>
     <button onclick="heal()">Auto Heal</button>
 
     <p id="secStatus" class="ok">System secure</p>
 
-    <div id="logs"></div>
+    <div id="logs">
+      <div class="log">[INFO] Dashboard Loaded</div>
+    </div>
   </div>
 
 </div>
 
+<!-- LIVE DATA FROM JENKINS -->
 <script src="data.js"></script>
 
 <script>
-function updateUI(){
-  document.getElementById("pipelineStatus").innerText = window.pipelineStatus;
-  document.getElementById("instanceId").innerText = window.instanceId;
-  document.getElementById("publicIp").innerText = window.publicIp;
-  document.getElementById("instanceState").innerText = window.instanceState;
-  document.getElementById("deployTime").innerText = window.lastDeploy;
 
-  document.getElementById("status").innerText = "COMPLIANT";
+// 🔥 PUT YOUR API URL HERE
+const API_URL = "https://xagu169m4c.execute-api.us-east-1.amazonaws.com/action";
+
+function updateUI(){
+  document.getElementById("pipelineStatus").innerText = window.pipelineStatus || "SUCCESS";
+  document.getElementById("instanceId").innerText = window.instanceId || "Not found";
+  document.getElementById("publicIp").innerText = window.publicIp || "Not found";
+  document.getElementById("instanceState").innerText = window.instanceState || "Running";
+  document.getElementById("deployTime").innerText = window.lastDeploy || "Unknown";
 }
 
 function log(msg){
@@ -143,25 +155,48 @@ function log(msg){
   document.getElementById("logs").prepend(d);
 }
 
-function drift(){
+// 🔥 CALL BACKEND
+async function callBackend(action) {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ action: action })
+    });
+
+    const data = await res.json();
+    log("[BACKEND] " + data.message);
+  } catch (err) {
+    log("[ERROR] API call failed");
+  }
+}
+
+// 🔥 DRIFT BUTTON
+async function drift(){
   document.getElementById("status").innerText = "DRIFT";
   document.getElementById("status").style.background="red";
   document.getElementById("secStatus").innerText = "Public SSH detected!";
   document.getElementById("secStatus").className="warn";
 
-  log("Drift detected: SSH opened to public");
+  log("[UI] Sending drift request...");
+  await callBackend("drift");
 }
 
-function heal(){
+// 🔥 HEAL BUTTON
+async function heal(){
   document.getElementById("status").innerText = "HEALED";
   document.getElementById("status").style.background="green";
   document.getElementById("secStatus").innerText = "Issue fixed";
   document.getElementById("secStatus").className="ok";
 
-  log("Auto-heal executed via Lambda simulation");
+  log("[UI] Sending auto-heal request...");
+  await callBackend("heal");
 }
 
 window.onload = updateUI;
+
 </script>
 
 </body>
